@@ -88,105 +88,6 @@ public class ConnectingWhitespaceRule extends Rule {
     ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevMessage);
     ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bet\\.?\\s?(al)\\.?", RuleDescriptions.NBSPAbbrevMessage);
 
-
-
-//    List<Pattern> setExpressions = new ArrayList<>();
-    // FIXME: First 3 are fixed don't change order for them
-    //  tbf there should be a better way to order this stuff so that, that isnt an issue to begin with ( ˘︹˘ )
-    // FIXME: slīpsvītras kā daļa no tīmekļa saitēm
-//    setExpressions.add(Pattern.compile("(\\b\\s*|\\s+)([–—/%]|lpp\\.)(?=\\s|$)"));
-//    setExpressions.add(Pattern.compile("(?<![./])\\b[1-9]\\d{4,}\\b(?!/)"));
-//    setExpressions.add(Pattern.compile("\\b(\\+\\d{2,3}\\s)?\\d{1,3}(\\s\\d{3})+\\b"));
-//    setExpressions.add(Pattern.compile("\\b(Nr|pp)\\.\\s?"));
-//    setExpressions.add(Pattern.compile("\\bt\\.\\s?(i|sk)\\."));
-//    setExpressions.add(Pattern.compile("\\b(Ph\\.\\s?D\\.)|(Mg|Dr|Ph\\.\\s?D)\\.\\s?(habil\\.\\s?)?(philol|sc\\.\\s?comp|phys)\\."));
-//    setExpressions.add(Pattern.compile("\\bu\\.\\s?(c|tml|t\\.\\s?jpr)\\."));
-//    setExpressions.add(Pattern.compile("\\b(Sv|Dr)\\.\\s?\\p{Lu}\\p{Ll}+(\\b|\\s|$)"));
-//    setExpressions.add(Pattern.compile("\\ba\\.\\s?(k|god)\\."));
-//    setExpressions.add(Pattern.compile("\\bd\\.\\s?k\\."));
-//    setExpressions.add(Pattern.compile("\\bdz\\.\\s?v\\."));
-//    setExpressions.add(Pattern.compile("\\bg\\.\\s?t\\."));
-//    setExpressions.add(Pattern.compile("\\bīst\\.\\s?v\\."));
-//    setExpressions.add(Pattern.compile("\\bļ\\.\\s?cien\\."));
-//    setExpressions.add(Pattern.compile("\\bpers\\.\\s?k\\."));
-//    setExpressions.add(Pattern.compile("\\bp\\.\\s?[kni]\\."));
-//    setExpressions.add(Pattern.compile("\\b(p\\.\\s?)?m\\.\\s?ē\\."));
-//    setExpressions.add(Pattern.compile("\\bP\\.\\s?S\\."));
-//    setExpressions.add(Pattern.compile("\\bt\\.\\s?[ps]\\."));
-//    setExpressions.add(Pattern.compile("\\bu\\.\\s?g\\."));
-//    setExpressions.add(Pattern.compile("\\bu\\.\\s?t\\.\\s?jpr\\."));
-//    setExpressions.add(Pattern.compile("\\bv\\.\\s?tml\\."));
-//    setExpressions.add(Pattern.compile("\\bz\\.\\s?v\\."));
-//    setExpressions.add(Pattern.compile("\\bet\\.?\\s?(al)\\.?"));
-    // Lowercase nepieciešams, lai neieplūstu nākamajā teikumā
-    // Vismaz 2 simboli pēc tam lai nesadalītu kaut kādus 1.a. ar atstarpi
-//    setExpressions.add(Pattern.compile("\\b[1-9]\\d*\\.?\\s?(g\\.|\\p{Ll}{2,})(?=\\s|$|\\p{Punct})"));
-//    setExpressions.add(Pattern.compile("\\b(\\p{Lu}\\.?\\s?)+(\\p{Lu}\\p{Ll}+)\\b"));
-//    setExpressions.add(Pattern.compile("\\b([1-9]|[12]\\d|3[01])\\.\\s?(((janvā|februā|((septe|nove|dece)m|okto)b)r|aprīl)([aiī]|i[sm])|(mart|maij|jū[nl]ij|august)([aāus]|am)"));
-    // Atstarpes pie valūtas ir nodalītas atsevišķi vēlāk failā
-
-    // Let's fix connected whitespaces here
-//    for (int i = 0; i < setExpressions.size(); i++) {
-//      Matcher matcher = setExpressions.get(i).matcher(sentence.getText());
-//      while (matcher.find()) {
-//        String message = getDescription();
-//        String match_text = matcher.group();
-//
-//        String corrected_text = match_text;
-//        int fromPos = matcher.start();
-//        int toPos =  matcher.end();
-//
-//        // Let's only apply the error correction at the position of the whitespace
-//        for (int j = 0; j < match_text.length(); j++) {
-//          if (Character.isWhitespace(match_text.charAt(j))) {
-//            corrected_text = match_text.replaceAll("\\s+", String.valueOf(nonBreakingSpace));
-//          }
-//        }
-//
-//        // Add connecting whitespace if it is omitted
-//        Pattern dotNonWhitespace = Pattern.compile("\\.\\S");
-//        Matcher missingMatcher = dotNonWhitespace.matcher(match_text);
-//
-//        int missed_whitespaces = 0;
-//        while (missingMatcher.find()) {
-//          int gap = missingMatcher.start()+1+missed_whitespaces;
-//          missed_whitespaces++;
-//          corrected_text = corrected_text.substring(0, gap) + nonBreakingSpace + corrected_text.substring(gap);
-//        }
-//
-//
-//        if (i == 0) {
-//          corrected_text = DefiseFormatRule.replaceLongDomuzime(corrected_text);
-//          if (!match_text.matches("^\\s\\S+")) {
-//            // Dažādus simbolus atdalot jāizmanto atstarpe
-//            corrected_text = nonBreakingSpace + corrected_text;
-//          } else {
-//            corrected_text = corrected_text.replaceAll("\\s+", String.valueOf(nonBreakingSpace));
-//          }
-//
-//        }
-//        else if (i == 1) {
-//          // Skaitļiem nepieciešams atdalīt ik pa 10^3, sākot no 10^5
-//          corrected_text = bigNumberWhitespace(match_text);
-//          message = RuleDescriptions.NBSPNumbersMessage;
-//        }
-//        else if (i == 2) {
-//          // Ja jau ir atdalījumi jānomaina uz nonBreakingSpace
-//          corrected_text = match_text.replaceAll("\\s+", String.valueOf(nonBreakingSpace));
-//        }
-//
-//        // ONly apply the rule if there is actual change done
-//        if (!corrected_text.matches(match_text)) {
-//          RuleMatch ruleMatch = new RuleMatch(this, sentence, fromPos, toPos, message);
-//          ruleMatch.setSuggestedReplacement(corrected_text);
-//          System.out.println(corrected_text);
-//          System.out.println(nonBreakingSpace);
-//          ruleMatches.add(ruleMatch);
-//        }
-//
-//      }
-//    }
-
     return toRuleMatchArray(ruleMatches);
   }
 
@@ -336,7 +237,6 @@ public class ConnectingWhitespaceRule extends Rule {
       ruleMatch.setSuggestedReplacement(corrected_text);
       ruleMatches.add(ruleMatch);
     }
-
 
     return ruleMatches;
   }

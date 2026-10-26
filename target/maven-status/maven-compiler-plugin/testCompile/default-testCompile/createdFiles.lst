@@ -1,8 +1,0 @@
-org\languagetool\rules\lv\LatvianPatternRuleTest.class
-org\languagetool\synthesis\lv\LatvianSynthesizerTest.class
-org\languagetool\rules\lv\LatvianTest.class
-org\languagetool\rules\lv\ruleTests\ConnectingWhitespaceTests.class
-org\languagetool\tokenizers\lv\LatvianSRXSentenceTokenizerTest.class
-org\languagetool\LatvianConcurrencyTest.class
-org\languagetool\rules\lv\LanguageSpecificSpellcheckerTest.class
-org\languagetool\rules\lv\CompoundRuleTest.class
