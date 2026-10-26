@@ -1,0 +1,24 @@
+package org.languagetool.rules.lv.tehniskais;
+
+import org.languagetool.Language;
+import org.languagetool.rules.Categories;
+import org.languagetool.rules.ITSIssueType;
+import org.languagetool.rules.WordRepeatRule;
+import org.languagetool.rules.lv.LatvianErrorCategories;
+import org.languagetool.rules.lv.RuleDescriptions;
+
+import java.util.ResourceBundle;
+
+public class LV_WordRepeatRule extends WordRepeatRule {
+
+    public LV_WordRepeatRule(ResourceBundle messages, Language language) {
+        super(messages, language);
+        super.setCategory(LatvianErrorCategories.TEHN);
+        setLocQualityIssueType(ITSIssueType.Duplication);
+    }
+
+    @Override
+    public String getDescription() {
+        return RuleDescriptions.duplicateWordMessage;
+    }
+}

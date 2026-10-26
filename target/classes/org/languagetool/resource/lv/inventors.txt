@@ -1,0 +1,9 @@
+# Latvian fixed surname combinations in terminology
+# All listed forms are in genitive (assumed always in genitive, like prob 99% cases)
+# "+" at the end of the line if listed in nominative
+# Encoding: UTF-8
+# All words must contain at least one dash
+
+Bozes–Einšteina
+Molotova–Ribentropa
+Mīlenbaha–Endzelīna
