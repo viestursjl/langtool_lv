@@ -157,7 +157,7 @@ public class LatvianTest extends LanguageSpecificTest {
   @Test
   public void numbersMason() throws IOException {
     JLanguageTool lt = new JLanguageTool(new Latvian());
-    System.out.println(lt.check("1500")); // false -> single dot
+    System.out.println(lt.check("Es dzīvoju netālu no Kohtla–Jerve")); // false -> single dot
     System.out.println(lt.check("15000")); // true
   }
 

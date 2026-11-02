@@ -71,7 +71,7 @@ public class DashFormatRule extends Rule {
                             if (places.contains(possibleLemma)) {
                                 isRoute = false;
                             } else if (checkInList(tokens[i].getToken(), INVENTORS_FILENAME)) {
-                                String msg = getDescription();
+                                String msg = RuleDescriptions.dashFormatMessage;
                                 RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
                                 match.setSuggestedReplacement(tokens[i].getToken().replace('-', domuzīme));
                                 ruleMatches.add(match);
@@ -82,7 +82,7 @@ public class DashFormatRule extends Rule {
                         if (places.contains(token)) {
                             isRoute = false;
                         } else if (checkInList(tokens[i].getToken(), INVENTORS_FILENAME)) {
-                            String msg = getDescription();
+                            String msg = RuleDescriptions.dashFormatMessage;
                             RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
                             match.setSuggestedReplacement(tokens[i].getToken().replace('-', domuzīme));
                             ruleMatches.add(match);
@@ -141,7 +141,7 @@ public class DashFormatRule extends Rule {
                         if (!Objects.equals(dash_matcher.group(), domuzīme.toString())) {
 //                            String correction = String.join(domuzīme.toString(), parts);
 //                            System.out.println(correction);
-                            String msg = getDescription();
+                            String msg = RuleDescriptions.dashFormatMessage;
                             RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
                             match.setSuggestedReplacement(correction.toString());
                             ruleMatches.add(match);
@@ -190,7 +190,7 @@ public class DashFormatRule extends Rule {
                     }
                 }
                 if (genetive_construct || month_construct || weekday_construct) {
-                    String msg = getDescription();
+                    String msg = RuleDescriptions.dashFormatMessage;
                     RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
                     match.setSuggestedReplacement(tokens[i].getToken().replace('-', domuzīme));
 //                    System.out.println(tokens[i].getToken().replace('-', domuzīme));

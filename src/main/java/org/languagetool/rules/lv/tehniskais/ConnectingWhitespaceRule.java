@@ -66,27 +66,28 @@ public class ConnectingWhitespaceRule extends Rule {
 
     // NBSP usage after/inbetween abbreviations
     ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Nr|pp)\\.\\s?", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?(i|sk)\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Ph\\.\\s?D\\.)|(Mg|Dr|Ph\\.\\s?D)\\.\\s?(habil\\.\\s?)?(philol|sc\\.\\s?comp|phys)\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?(c|tml|t\\.\\s?jpr)\\.", RuleDescriptions.NBSPAbbrevMessage);
     ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Sv|Dr)\\.\\s?\\p{Lu}\\p{Ll}+(\\b|\\s|$)", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\ba\\.\\s?(k|god)\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bd\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bdz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bg\\.\\s?t\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bīst\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bpers\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bp\\.\\s?[kni]\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(p\\.\\s?)?m\\.\\s?ē\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bP\\.\\s?S\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?[ps]\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?g\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?t\\.\\s?jpr\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bv\\.\\s?tml\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bet\\.?\\s?(al)\\.?", RuleDescriptions.NBSPAbbrevMessage);
+
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?(i|sk)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Ph\\.\\s?D\\.)|(Mg|Dr|Ph\\.\\s?D)\\.\\s?(habil\\.\\s?)?(philol|sc\\.\\s?comp|phys)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?(c|tml|t\\.\\s?jpr)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\ba\\.\\s?(k|god)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bd\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bdz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bg\\.\\s?t\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bīst\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bpers\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bp\\.\\s?[kni]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(p\\.\\s?)?m\\.\\s?ē\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bP\\.\\s?S\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?[ps]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?g\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?t\\.\\s?jpr\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bv\\.\\s?tml\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bet\\.?\\s?(al)\\.?", RuleDescriptions.NBSPAbbrevChainMessage);
 
     return toRuleMatchArray(ruleMatches);
   }
@@ -203,13 +204,16 @@ public class ConnectingWhitespaceRule extends Rule {
       String sign = (degreeMatcher.group(1) == null) ? "" : degreeMatcher.group(1);
       String number = decimalRule(degreeMatcher.group(2));
       String measure = degreeMatcher.group(3);
+      String message;
+
       if (measure == null) {
         corrected_text = sign + number + "°";
+        message = RuleDescriptions.DegreesMessage;
       } else {
         corrected_text = sign + number + nonBreakingSpace + "°" + measure;
+        message = RuleDescriptions.NBSPTemperatureMessage;
       }
 
-      String message = RuleDescriptions.NBSPTemperatureMessage;
       RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
       ruleMatch.setSuggestedReplacement(corrected_text);
       ruleMatches.add(ruleMatch);

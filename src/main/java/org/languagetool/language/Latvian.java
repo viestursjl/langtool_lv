@@ -103,7 +103,7 @@ public class Latvian extends Language {
             new ConnectingWhitespaceRule(messages, this),
 
             // FIXME: Testing DashFormatRule refactoring
-            new DashFormatRule(messages, this),
+//            new DashFormatRule(messages, this),
 //            new org.languagetool.rules.lv.tehniskais.refactor.DashFormatRule(messages, this),
 
             new DefiseFormatRule(messages, this),
