@@ -7,6 +7,15 @@
 # "*" at the end of the line will only suggest hyphenated words.
 
 # Hyphen words
+marksisms-ļeņinisms
 diode-triode
 e-pasts
 e-komercija
+iņ-jaņ
+klik-klak
+klip-klap
+kloķa-klaņa
+klumpu-klampu
+koka-kola
+kuņģa-zarnu
+pH-metrs

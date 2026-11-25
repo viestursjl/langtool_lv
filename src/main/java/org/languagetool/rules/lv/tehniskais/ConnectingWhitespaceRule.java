@@ -20,6 +20,9 @@ public class ConnectingWhitespaceRule extends Rule {
 
 
   public Character nonBreakingSpace = ' ';
+  public Character hyphen = '-';
+  public Character dash = '–';
+  public Character minus = '−';
 
   /** @since 5.9 */
   public ConnectingWhitespaceRule(ResourceBundle messages, Language language) {
@@ -49,45 +52,47 @@ public class ConnectingWhitespaceRule extends Rule {
 
 
     // First let's fix currency usage and number within it
+    ruleMatches = spanRule(ruleMatches, sentence);
     ruleMatches = currencyRule(ruleMatches, sentence);
     ruleMatches = measurementRule(ruleMatches, sentence);
+    ruleMatches = numbersRule(ruleMatches, sentence);
+//    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b[1-9]\\d*\\.?\\s?(g\\.|\\p{Ll}{2,})(?=\\s|$|\\p{Punct})", RuleDescriptions.NBSPUnitsMessage);
 
     // After that let's fix NBSP usage before dashes
     ruleMatches = dashRule(ruleMatches, sentence);
 
     // NBSP usage inbetween numbers
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?<![./])\\b[1-9]\\d{4,}\\b(?!/)", RuleDescriptions.NBSPNumbersMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(\\+\\d{2,3}\\s)?\\d{1,3}(\\s\\d{3})+\\b", RuleDescriptions.NBSPNumbersMessage);
+//    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?<![./])\\b[1-9]\\d{4,}\\b(?!/)", RuleDescriptions.NBSPNumbersMessage);
+//    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(\\+\\d{2,3}\\s)?\\d{1,3}(\\s\\d{3})+\\b", RuleDescriptions.NBSPNumbersMessage);
 
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b[1-9]\\d*\\.?\\s?(g\\.|\\p{Ll}{2,})(?=\\s|$|\\p{Punct})", RuleDescriptions.NBSPUnitsMessage);
 
     // NBSP usgae before initials
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(\\p{Lu}\\.?\\s?)+(\\p{Lu}\\p{Ll}+)\\b", RuleDescriptions.NBSPInitialMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b(\\p{Lu}\\.\\s?)+(\\p{Lu}\\p{Ll}+)\\b", RuleDescriptions.NBSPInitialMessage);
 
     // NBSP usage after/inbetween abbreviations
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Nr|pp)\\.\\s?", RuleDescriptions.NBSPAbbrevMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Sv|Dr)\\.\\s?\\p{Lu}\\p{Ll}+(\\b|\\s|$)", RuleDescriptions.NBSPAbbrevMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b(Nr|pp)\\.\\s?", RuleDescriptions.NBSPAbbrevMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b(Sv|Dr)\\.\\s?\\p{Lu}\\p{Ll}+(\\b|\\s|$)", RuleDescriptions.NBSPAbbrevMessage);
 
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?(i|sk)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(Ph\\.\\s?D\\.)|(Mg|Dr|Ph\\.\\s?D)\\.\\s?(habil\\.\\s?)?(philol|sc\\.\\s?comp|phys)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?(c|tml|t\\.\\s?jpr)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\ba\\.\\s?(k|god)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bd\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bdz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bg\\.\\s?t\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bīst\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bpers\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bp\\.\\s?[kni]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\b(p\\.\\s?)?m\\.\\s?ē\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bP\\.\\s?S\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bt\\.\\s?[ps]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?g\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bu\\.\\s?t\\.\\s?jpr\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bv\\.\\s?tml\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
-    ruleMatches = arbitraryRule(ruleMatches, sentence, "\\bet\\.?\\s?(al)\\.?", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bt\\.\\s?(i|sk)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b(Ph\\.\\s?D\\.)|(Mg|Dr|Ph\\.\\s?D)\\.\\s?(habil\\.\\s?)?(arch|biol|oec|pharm|phil(ol)?|sc\\.\\s?(comp|ing|soc|pol)|phys|geogr|med(\\.\\s?(vet))?|chem|agr|math|silv|paed|theol|iur|hist)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bu\\.\\s?(c|tml|t\\.\\s?jpr)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\ba\\.\\s?(k|god)\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bd\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bdz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bg\\.\\s?t\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bīst\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bļ\\.\\s?cien\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bpers\\.\\s?k\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bp\\.\\s?[kni]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\b(p\\.\\s?)?m\\.\\s?ē\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bP\\.\\s?S\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bt\\.\\s?[ps]\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bu\\.\\s?g\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bu\\.\\s?t\\.\\s?jpr\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bv\\.\\s?tml\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bz\\.\\s?v\\.", RuleDescriptions.NBSPAbbrevChainMessage);
+    ruleMatches = arbitraryRule(ruleMatches, sentence, "(?U)\\bet\\.?\\s?(al)\\.?", RuleDescriptions.NBSPAbbrevChainMessage);
 
     return toRuleMatchArray(ruleMatches);
   }
@@ -95,7 +100,7 @@ public class ConnectingWhitespaceRule extends Rule {
 
 
   public List<RuleMatch> dashRule(List<RuleMatch> ruleMatches, AnalyzedSentence sentence) {
-    String dashMatch = "(\\b\\s*|\\s+)([–—])(?=\\s|$)";
+    String dashMatch = "(?U)(\\b\\s*|\\s+)([‒–—])(?=\\s|$)";
     Pattern dashPattern = Pattern.compile(dashMatch);
     Matcher dashMatcher = dashPattern.matcher(sentence.getText());
 
@@ -108,16 +113,60 @@ public class ConnectingWhitespaceRule extends Rule {
       String corrected_text = correctWhitespace(match_text);
 
       corrected_text = DefiseFormatRule.replaceLongDomuzime(corrected_text);
-      if (!match_text.matches("^\\s\\S+")) {
+
+      if (match_text.matches("(?U)^\\S+")) {
         // Dažādus simbolus atdalot jāizmanto atstarpe
         corrected_text = nonBreakingSpace + corrected_text;
       } else {
-        corrected_text = corrected_text.replaceAll("\\s+", String.valueOf(nonBreakingSpace));
+        corrected_text = corrected_text.replaceAll("(?U)\\s+", String.valueOf(nonBreakingSpace));
       }
 
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+      if (!corrected_text.equals(match_text)) {
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
+    }
+
+    return ruleMatches;
+  }
+
+  // TODO: Generalize this regex outside, so that it can be used for other spans, e.g. (1881 – 1884) and 6-8%
+  public List<RuleMatch> spanRule(List<RuleMatch> ruleMatches, AnalyzedSentence sentence) {
+    // This regex is vile
+    String spanMatch = "(?U)\\b([1-9](?:[0-9]*(?:[^\\S\\r\\n][0-9]+)?)?\\.?)(?:(?:\\s*[-‒–—]\\s*)([1-9](?:[0-9]*(?:[^\\S\\r\\n][0-9]+)?)?\\.?))?\\s?(g\\.|\\p{Ll}{2,})(?=\\s|$|\\p{Punct})";
+    Pattern spanPattern = Pattern.compile(spanMatch);
+    Matcher spanMatcher = spanPattern.matcher(sentence.getText());
+
+    while (spanMatcher.find()) {
+      String message;
+      String match_text = spanMatcher.group();
+      int startPos = spanMatcher.start();
+      int endPos = spanMatcher.end();
+
+      String corrected_text = "";
+
+      if (spanMatcher.group(2) != null) {
+          message = RuleDescriptions.dashFormatMessage + " " + RuleDescriptions.NBSPUnitsMessage;
+          corrected_text =
+                decimalRule(spanMatcher.group(1).replaceAll("(?U)\\s", ""))+
+                dash.toString()+
+                decimalRule(spanMatcher.group(2).replaceAll("(?U)\\s", ""))+
+                nonBreakingSpace.toString()+
+                spanMatcher.group(3);
+      } else {
+          message = RuleDescriptions.NBSPUnitsMessage;
+          corrected_text =
+                decimalRule(spanMatcher.group(1).replaceAll("(?U)\\s", ""))+
+                nonBreakingSpace.toString()+
+                spanMatcher.group(3);
+      }
+
+      if (!corrected_text.equals(match_text)) {
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
     return ruleMatches;
@@ -135,9 +184,11 @@ public class ConnectingWhitespaceRule extends Rule {
 
       String corrected_text = correctWhitespace(match_text);
 
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+      if (!corrected_text.equals(match_text)) {
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
     return ruleMatches;
@@ -149,7 +200,7 @@ public class ConnectingWhitespaceRule extends Rule {
     String currenciesFullword = "((l[ia]t|dolār|rubļ|zlot|frank|forint|riāl|dinār|cent|santīm|šiliņ)(i(em)?|[uo]s)|(mārciņ|kron|j[eē]n|juaņ|rūpij|lir|von|mark)(as|ā[ms]|u)|e[iu]ro|peso)";
 
     // Šeit, ja ir pareiza secība
-    String currencyOrder = "([0-9]+)\\s?+("+currencies+"|"+currenciesFullword+")(?=\\s|$|\\b|\\p{P})";
+    String currencyOrder = "(?U)([0-9]+(?:[^\\S\\r\\n][0-9]+)*)[^\\S\\r\\n]*("+currencies+"|"+currenciesFullword+")(?=\\s|$|\\b|\\p{P})";
     Pattern currencyOrderPattern = Pattern.compile(currencyOrder);
     Matcher currencyMatcher = currencyOrderPattern.matcher(sentence.getText());
 
@@ -159,16 +210,18 @@ public class ConnectingWhitespaceRule extends Rule {
       int startPos = currencyMatcher.start();
       int endPos = currencyMatcher.end();
       String corrected_text = decimalRule(currencyMatcher.group(1)) + nonBreakingSpace + currencyMatcher.group(2);
-
       String message = RuleDescriptions.currencyMessage;
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+
+      if (!corrected_text.equals(match_text)) {
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
 
     // Šeit uztveram, ja ir norādīta valūta nepareizā secībā
-    String wrongCurrencyOrder = "(?<=\\s|^|\\b)" + currencies+ "\\s?([0-9]+([.,][0-9]+)?(?=\\s|$|\\b|\\p{P}))";
+    String wrongCurrencyOrder = "(?U)(?<=\\s|^|\\b)" + currencies+ "[^\\S\\r\\n]?([0-9]+(?:[^\\S\\r\\n][0-9]+)*([.,][0-9]+(?:[^\\S\\r\\n][0-9]+)*)?(?=\\s|$|\\b|\\p{P}))";
     Pattern wrongCurrencyOrderPattern = Pattern.compile(wrongCurrencyOrder);
     Matcher wrongOrderCurrencyMatcher = wrongCurrencyOrderPattern.matcher(sentence.getText());
 
@@ -179,10 +232,12 @@ public class ConnectingWhitespaceRule extends Rule {
 
       String corrected_text = decimalRule(wrongOrderCurrencyMatcher.group(2)) + nonBreakingSpace + wrongOrderCurrencyMatcher.group(1);
 
-      String message = RuleDescriptions.currencyMessage;
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+      if (!corrected_text.equals(wrongOrderCurrencyMatcher.group())) {
+        String message = RuleDescriptions.currencyMessage;
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
     return ruleMatches;
@@ -190,9 +245,15 @@ public class ConnectingWhitespaceRule extends Rule {
 
 
   public List<RuleMatch> measurementRule(List<RuleMatch> ruleMatches, AnalyzedSentence sentence) {
+    // group 1 - plus/minus sign
+    // group 2 - first number
+    // group 3 - second number, after dash (can be null)
+    String numberis = "(?U)(?<=\\s|^|\\b)(?:([+−–—\\-])[^\\S\\r\\n]?)?([0-9]+(?:[^\\S\\r\\n][0-9]+)*(?:[.,][0-9]+(?:[^\\S\\r\\n][0-9]+)*)?)(?:\\s*[-–—]\\s*([0-9]+(?:[^\\S\\r\\n][0-9]+)*(?:[.,][0-9]+(?:[^\\S\\r\\n][0-9]+)*)?))?";
+    Pattern numbers = Pattern.compile(numberis);
+
     // First let's tackle degrees
-    // Be careful changing this regex, group numbers might change as well
-    String degrees = "([+-])?\\s?([0-9]+(?:[.,][0-9]+)?)\\s?°(?:\\s?([CF]))?(?=\\s|$|\\b|\\p{P})";
+    // Be careful changing this regex, group numbers are important here
+    String degrees = numberis + "[^\\S\\r\\n]?°(?:[^\\S\\r\\n]?([CF]))?(?=\\s|$|\\b|\\p{P})";
     Pattern degreePattern = Pattern.compile(degrees);
     Matcher degreeMatcher = degreePattern.matcher(sentence.getText());
 
@@ -201,28 +262,32 @@ public class ConnectingWhitespaceRule extends Rule {
       int endPos = degreeMatcher.end();
       String corrected_text;
 
-      String sign = (degreeMatcher.group(1) == null) ? "" : degreeMatcher.group(1);
-      String number = decimalRule(degreeMatcher.group(2));
-      String measure = degreeMatcher.group(3);
+      String sign = (degreeMatcher.group(1) == null) ? "" : degreeMatcher.group(1).replaceAll("[-–‒]", "−");
+      String number = decimalRule(degreeMatcher.group(2).replaceAll("(?U)[^\\S\\r\\n]", ""));
+      String number2 = (degreeMatcher.group(3) == null) ? "" : "–"+decimalRule(degreeMatcher.group(3).replaceAll("(?U)[^\\S\\r\\n]", ""));
+      String measure = degreeMatcher.group(4);
       String message;
 
       if (measure == null) {
-        corrected_text = sign + number + "°";
+        corrected_text = sign + number + number2 + "°";
         message = RuleDescriptions.DegreesMessage;
       } else {
-        corrected_text = sign + number + nonBreakingSpace + "°" + measure;
+        corrected_text = sign + number + number2 + nonBreakingSpace + "°" + measure;
         message = RuleDescriptions.NBSPTemperatureMessage;
       }
 
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+      if (!corrected_text.equals(degreeMatcher.group())) {
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
 
     // Next other simple measurements
-    String number_pattern = "([+-])?\\s?([0-9]+(?:[.,][0-9]+)?)\\s?";
-    String measures = "\\b([km]?g|[mdk]?l|[mcdk]?m(?:[²³]|\\s?/\\s?(?:[sh]|min))?|K|s|bar|psi|Pa|kPa|[kMG]?(?:[WVA]|Hz))\\b";
+    // FIXME: A var būt gan ampēri, gan māju adresēs, i.e. Gustava Zemgala gatve 74A, Rīga
+    String number_pattern = numberis + "\\s?";
+    String measures = "([km]?g|ha|[mdk]?l|[mcdk]?m(?:[²³]|(?U)\\s?\\/\\s?(?:[sh]|min))?|K|s|%|bar|psi|Pa|kPa|[kMG]?(?:[WVA]|Hz))(?=(?U)\\s|$|\\b|\\p{P})";
     Pattern measuresPattern = Pattern.compile(number_pattern + measures);
     Matcher measuresMatcher = measuresPattern.matcher(sentence.getText());
 
@@ -230,21 +295,50 @@ public class ConnectingWhitespaceRule extends Rule {
       int startPos = measuresMatcher.start();
       int endPos = measuresMatcher.end();
 
-      String sign = (measuresMatcher.group(1) == null) ? "" : measuresMatcher.group(1);
-      String number = decimalRule(measuresMatcher.group(2));
-      String measure = measuresMatcher.group(3).replaceAll(" ", "");
-      String corrected_text = sign + number + nonBreakingSpace + measure;
+      String sign = (measuresMatcher.group(1) == null) ? "" : measuresMatcher.group(1).replaceAll("[-–‒]", "−");
+      String number = decimalRule(measuresMatcher.group(2).replaceAll("(?U)[^\\S\\r\\n]", ""));
+      String number2 = (measuresMatcher.group(3) == null) ? "" : dash.toString()+decimalRule(measuresMatcher.group(3).replaceAll("(?U)[^\\S\\r\\n]", ""));
+      String measure = measuresMatcher.group(4);
 
-      System.out.println(corrected_text);
-      String message = RuleDescriptions.NBSPUnitsMessage;
-      RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
-      ruleMatch.setSuggestedReplacement(corrected_text);
-      ruleMatches.add(ruleMatch);
+      String corrected_text = sign + number + number2 + nonBreakingSpace + measure;
+
+      if (!corrected_text.equals(measuresMatcher.group())) {
+        String message = RuleDescriptions.NBSPUnitsMessage;
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
     }
 
     return ruleMatches;
   }
 
+
+  public List<RuleMatch> numbersRule(List<RuleMatch> ruleMatches, AnalyzedSentence sentence) {
+    // Šeit, ja ir pareiza secība
+    // FIXME: Šis tad vienkārši atlasīs jebkuru skaitli tāpatās, kas beidzas ar punktu tikai izlaižot pēdējo ciparu
+    String number = "(?U)(?<=^|\\s)([0-9]+(?:[^\\S\\r\\n][0-9]+)*)([.,][0-9]+(?:[^\\S\\r\\n][0-9]+)*(?![.\\-\\/]))?(?=$|\\s)";
+    Pattern numberPattern = Pattern.compile(number);
+    Matcher numberMatcher = numberPattern.matcher(sentence.getText());
+
+    while (numberMatcher.find()) {
+      // Atlasīt potenciālus pulkteņa laikus (3.00) un datumus (24.08.)
+
+      String match_text = numberMatcher.group();
+
+      int startPos = numberMatcher.start();
+      int endPos = numberMatcher.end();
+      String corrected_text = decimalRule(numberMatcher.group().replaceAll("(?U)\\s",""));
+
+      if (!corrected_text.equals(match_text)) {
+        String message = RuleDescriptions.NBSPNumbersMessage;
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, startPos, endPos, message);
+        ruleMatch.setSuggestedReplacement(corrected_text);
+        ruleMatches.add(ruleMatch);
+      }
+    }
+    return ruleMatches;
+  }
 
 
   public String decimalRule(String number) {
@@ -252,7 +346,7 @@ public class ConnectingWhitespaceRule extends Rule {
     Matcher matcher = sep.matcher(number);
 
     if (matcher.find()) {
-      if (matcher.group().equals(".")) {
+      if (matcher.group().equals(".") && matcher.end() != number.length()) {
         // Replace dot with comma for numerals
         number = number.replace(".", ",");
       }
@@ -279,10 +373,12 @@ public class ConnectingWhitespaceRule extends Rule {
 
   public String bigNumberWhitespace(String number) {
     int numberIter = number.length();
-    while (numberIter > 4) {
-      int insertPos = numberIter - 3;
-      number = number.substring(0, insertPos) + nonBreakingSpace + number.substring(insertPos);
-      numberIter -= 3;
+    if (numberIter>=5) {
+      while (numberIter >= 4) {
+        int insertPos = numberIter - 3;
+        number = number.substring(0, insertPos) + nonBreakingSpace + number.substring(insertPos);
+        numberIter -= 3;
+      }
     }
     return number;
   }
@@ -303,12 +399,12 @@ public class ConnectingWhitespaceRule extends Rule {
     // Let's only apply the error correction at the position of the whitespace
     for (int j = 0; j < match_text.length(); j++) {
       if (Character.isWhitespace(match_text.charAt(j))) {
-        corrected_text = match_text.replaceAll("\\s+", String.valueOf(nonBreakingSpace));
+        corrected_text = match_text.replaceAll("(?U)\\s+", String.valueOf(nonBreakingSpace));
       }
     }
 
     // Add connecting whitespace if it is omitted
-    Pattern dotNonWhitespace = Pattern.compile("\\.\\S");
+    Pattern dotNonWhitespace = Pattern.compile("(?U)\\.\\S");
     Matcher missingMatcher = dotNonWhitespace.matcher(match_text);
 
     int missed_whitespaces = 0;

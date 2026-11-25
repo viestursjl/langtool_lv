@@ -115,7 +115,7 @@ public class Latvian extends Language {
             new LV_DoublePunctuationRule(messages),
             new LV_GenericUnpairedBracketsRule(messages, Arrays.asList("[", "(", "{"), Arrays.asList("]", ")", "}")),
             // NB: recommended quote style has to be first listed
-            new LV_GenericUnpairedQuotesRule(messages, Arrays.asList("“", "\"",  "„", "«", "‘"), Arrays.asList("”", "\"", "”", "»", "”")),
+            new LV_GenericUnpairedQuotesRule(messages, Arrays.asList("“", "\"",  "„", "«", "‘", "‘", ",,", "‘’"), Arrays.asList("”", "\"", "”", "»", "”", "’", "”", "”")),
             new UppercaseSentenceStartRule(messages, this),
             new LongSentenceRule(messages, userConfig, 40),
             new LV_WordRepeatRule(messages, this),

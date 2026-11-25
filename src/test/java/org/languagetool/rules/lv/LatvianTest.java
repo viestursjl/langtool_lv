@@ -25,6 +25,7 @@ import org.languagetool.JLanguageTool;
 import org.languagetool.LanguageSpecificTest;
 import org.languagetool.language.Latvian;
 import lv.semti.morphology.analyzer.Analyzer;
+import org.languagetool.rules.RuleMatch;
 import org.languagetool.tagging.lv.LatvianSentenceTokenizer;
 
 import java.io.IOException;
@@ -106,7 +107,7 @@ public class LatvianTest extends LanguageSpecificTest {
     JLanguageTool lt = new JLanguageTool(new Latvian());
 
     // Test maršruti
-    seperate_test(lt, "Rīgas–Viļņas"); // correct
+    seperate_test(lt, "Rīga–Viļņa"); // correct
     seperate_test(lt, "Rīgas– Viļņas"); //
     seperate_test(lt, "Rīgas –Viļņas"); //
     seperate_test(lt, "Rīgas – Viļņas"); //
@@ -327,6 +328,10 @@ public class LatvianTest extends LanguageSpecificTest {
 
   public void seperate_test(JLanguageTool lt, String test) throws IOException {
     System.out.println(lt.check(test));
+    List<RuleMatch> owo = lt.check(test);
+    for (RuleMatch r : lt.check(test)) {
+      System.out.println(r.getSuggestedReplacements());
+    }
     System.out.println("__________");
   }
 }

@@ -40,7 +40,7 @@ public class UnnecessaryWhitespaceRule extends Rule {
 
         // TODO: Te laikam ir nepieciešams dalījums teikumos, lai varētu papildus normāli apstrādāt punkta lietojumu
         //  Nezinu kādos gadījumos punktu vajag speciāli atdalīt bet varbūt tādi gadījumi ir ＼（〇_ｏ）／
-        Pattern pattern = Pattern.compile("\\s+(?=[,!?);”])|(?<=[\\[(“„])\\s+");
+        Pattern pattern = Pattern.compile("\\s+(?=[.,!?)}:;”\\]])|(?<=[\\[({“„])\\s+");
         Matcher matcher = pattern.matcher(sentence.getText());
 
         while (matcher.find()) {

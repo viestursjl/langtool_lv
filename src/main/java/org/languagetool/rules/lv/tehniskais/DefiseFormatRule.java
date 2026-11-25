@@ -19,6 +19,8 @@ public class DefiseFormatRule extends Rule {
     private static final Character longDomuzīme = '—';
     private static final Character domuzīme = '–';
     private static final Character defise = '-';
+    private static final String dashes = "[-‒–—]";
+
     private static final String PLACENAME_FILENAME = "/lv/gazetteer.txt";
     private static final String INVENTORS_FILENAME = "/lv/inventors.txt";
     private static final String COMPOUND_FILENAME = "/lv/compounds.txt";
@@ -57,244 +59,38 @@ public class DefiseFormatRule extends Rule {
     kad ap tām ir atstarpes.
     * */
 
+
     public RuleMatch[] match(AnalyzedSentence sentence) throws IOException {
-        List<RuleMatch> ruleMatches = new ArrayList<>();
-        AnalyzedTokenReadings[] tokens = sentence.getTokens();
-
-        ruleMatches = yearSpanRule(ruleMatches, sentence);
-        Pattern dash = Pattern.compile("[-–—]");
-        for (int i = 0; i < tokens.length; i++) {
-//            System.out.println("{"+tokens[i].getToken()+"}");
-            this.dashCorrected = new StringBuilder();
-            String token = tokens[i].getToken();
-//            System.out.println("{"+tokens[i]+"}");
-            Matcher dash_matcher = dash.matcher(token);
-            // Vai te atstarpes skaitās kā atsevišķs tokens? Diemžēl izskatās, ka jā!
-            //  Ja noņemtu atstarpes tas neļautu izķert kļūdas ar saistītās atstarpes lietojumu
-            if (token.matches(dash.pattern())) {
-                // Ja svītra ievada teikumu varam pieņemt, ka tā ir dialogu ievadoša domuzīme
-                // Teikuma tokenu sarakstam tiek pievienots tukšs [/SENT_START] tokens
-                if (i+1 == tokens.length) {
-                    // Vai vispār var beigties teikums ar svītru???
-                    continue;
-                } else {
-                    // Pārbaudām, vai tā ir domuzīme
-                    // Sākam ar gadījumu, kad simbols ir defise
-                    // Ņemam vērā, ka šajā gadījumā defise ir tokenizēta atsevišķi no pārējiem vārdiem
-                    // Tas notiek gadījumos, ja tai kādā pusē ir atstarpe vai cits punktuācijas simbols
-                    if (token.equals(defise.toString())) {
-                        String a = tokens[i].getWhitespaceBefore();
-                        List<AnalyzedToken> previous = tokens[i-1].getReadings();
-                        List<String> previousTags = previous.stream().map(AnalyzedToken::getPOSTag).collect(Collectors.toList());
-//                        System.out.println(previousTags);
-                        if (previousTags.contains("SENT_START")) {
-                            // TODO: Pielikt klāt labojumu, ka tiešo runu, dialogu ievada ar domuzīmi
-                            String correction = domuzīme.toString();
-                            // Ja nav atstarpes pēc tam tad pieliekam arī to klāt
-                            if (!tokens[i+1].isWhitespaceBefore()) correction += " ";
-                            String msg = RuleDescriptions.quoteDashMessage;
-                            RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
-                            match.setSuggestedReplacement(correction);
-                            ruleMatches.add(match);
-                        }
-                        // TODO: Šo droši vien vajadzēs papildināt ar likumiem, kas pārbauda vai gadījumā nav izlaista atstarpe
-                        //  aka, vai iepriekšējais vārds beidzas ar defisi "audio-"; nākošais vārds sākas ar defisi "-šana", u.c. instances
-                        else if (tokens[i-1] != null && tokens[i+1] != null) {
-                            if (tokens[i-1].getToken().matches("\\s") && tokens[i+1].getToken().matches("\\s|,")) {
-                                String msg = RuleDescriptions.dashMessage;
-                                if (!tokens[i-1].getToken().equals(nonBreakingSpace.toString())) {
-                                    int h = i;
-                                    while (tokens[h-1].getToken().matches("\\s")) h--;
-                                    msg += " "+RuleDescriptions.NBSPDashMessage;
-                                    String correction = nonBreakingSpace.toString()+ domuzīme;
-                                    RuleMatch match = new RuleMatch(this, sentence, tokens[h].getStartPos(), tokens[i].getEndPos(), msg);
-                                    match.setSuggestedReplacement(correction);
-                                    ruleMatches.add(match);
-                                }
-                                else {
-                                    String correction = domuzīme.toString();
-                                    RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos(), tokens[i].getEndPos(), msg);
-                                    match.setSuggestedReplacement(correction);
-                                    ruleMatches.add(match);
-                                }
-                            }
-                        }
-                    }
-                    // Ja tokens nav defise, tad tas ir domuzīme
-                    else {
-                        // TODO: Atlasām iepriekšējo un nākošo tokenu, ieliekam sarakstā un palaižam checkRoute funkciju
-                        int sublistStart = i-1;
-                        int sublistEnd = i+2;
-                        if (tokens[i-1].getToken().trim().isEmpty() && i-2>=0) sublistStart = i-2;
-                        if (tokens[i+1].getToken().trim().isEmpty() && i+2<=tokens.length) sublistEnd = i+3;
-                        // Man šķiet, ka jau sāku rakstīt pilnīgu sviestu (。・ω・。)
-                        // Atlasu arī iepriekšējos elementus un izņemu whitespace tokenus no list
-                        List<AnalyzedTokenReadings> full = Arrays.asList(tokens).subList(sublistStart, sublistEnd);
-                        String dfks = full.stream().map(tok -> tok.getToken()).collect(Collectors.toList()).stream()
-                                .reduce("", (str1, str2) -> str1 + str2);
-                        List<AnalyzedTokenReadings> a = full.stream()
-                                .filter(element -> !element.getToken().trim().isEmpty())
-                                .collect(Collectors.toList());
-                        if (a.size() != 3) continue;
-                        // Nav vērts turpināt pārbaudi, ja neatrod divus vārdus...
-                        Pattern īpašvārds = Pattern.compile("\\p{Lu}\\p{Ll}+");
-                        // Basically pārbaudām, ka abi savienotie vārdi sākas ar lielo burtu, un nav vienburtīgi
-                        if (a.get(0).getToken().matches(īpašvārds.pattern()) && a.get(2).getToken().matches(īpašvārds.pattern())) {
-                            // Checkroute funkciju ir vērts palaist tikai iekš šī if'a
-                            if (checkGazetteer(a, PLACENAME_FILENAME)) {
-                                // Piemērs: Rīga–Viļņa
-                                if (dashCorrected.length() != 0 && !dashCorrected.toString().equals(dfks)) {
-                                    String msg = RuleDescriptions.doublePlacenameMessage;
-                                    RuleMatch match = new RuleMatch(this, sentence, tokens[sublistStart].getStartPos(), tokens[sublistEnd-1].getEndPos(), msg);
-                                    System.out.println(dashCorrected);
-                                    match.setSuggestedReplacement(dashCorrected.toString());
-                                    ruleMatches.add(match);
-                                }
-                            } else {
-                                // Piemērs: Vīķe–Freiberga
-                                // TODO: Pārbaudām vai kombinācija ir INVENTORS sarakstā
-//                                System.out.println("___"+checkInList(a, INVENTORS_FILENAME).toString());
-                                if (checkInList(a, INVENTORS_FILENAME)) {
-                                    // Piemērs: Molotova–Ribentropa
-                                    if (a.get(1).isWhitespaceBefore() && a.get(2).isWhitespaceBefore()) {
-                                        // FIXME: Magic numbers i+3, i+2
-                                        String msg = getSpacingIssue1();
-                                        StringBuilder correction = concat(Arrays.stream(tokens, i-1, i+3).collect(Collectors.toList()));
-                                        RuleMatch match = new RuleMatch(this, sentence, tokens[i-1].getStartPos(), tokens[i+1].getEndPos(), msg);
-                                        match.setSuggestedReplacement(correction.toString());
-                                        ruleMatches.add(match);
-                                    } else if (a.get(1).isWhitespaceBefore() || a.get(2).isWhitespaceBefore()) {
-                                        String msg = getSpacingIssue1();
-                                        StringBuilder correction = concat(Arrays.stream(tokens, i-1, i+2).collect(Collectors.toList()));
-                                        RuleMatch match = new RuleMatch(this, sentence, tokens[i-1].getStartPos(), tokens[i+1].getEndPos(), msg);
-                                        match.setSuggestedReplacement(correction.toString());
-                                        ruleMatches.add(match);
-                                    }
-                                } else {
-                                    // Pieņemam, ka ja ir rakstīts bez atstarpēm, tad dubultuzvārds -> Vīķe-Freiberga
-                                    // Ja ar atstarpēm tad iespējams divi atšķirīgi vārdi -> Jānis – Pēterim
-                                    // FIXME: Te vēl var pielikt klāt locījuma pārbaudi, ja sakrīt dzimta, locījums, tad dubultuzvārds, ja nē tad divi atšķirīgi vārdi
-                                    if (!a.get(1).isWhitespaceBefore() && !a.get(2).isWhitespaceBefore()) {
-                                        if (true) {
-                                            // FIXME: Ja locījums sakrīt
-                                            String msg = RuleDescriptions.doubleSurnameMessage;
-                                            StringBuilder correction = concat(Arrays.stream(tokens, i-1, i+2).collect(Collectors.toList()), defise);
-                                            RuleMatch match = new RuleMatch(this, sentence, tokens[i-1].getStartPos(), tokens[i+1].getEndPos(), msg);
-                                            match.setSuggestedReplacement(correction.toString());
-                                            ruleMatches.add(match);
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            // Šeit ir basic gadījumi, kas arī nemaz nav tik viegli filtrējami
-                            // FIXME: Pārbaudām vai tokeni ir savienoti, t.i. bez atstarpēm pa vidu
-                            if (true) {
-//                            if (!a.get(1).isWhitespaceBefore() && !a.get(2).isWhitespaceBefore()) {
-                                if (checkInList(a, COMPOUND_FILENAME)) {
-                                    // Te ir jābūt tādiem salikteņiem kā "diode-triode", "e-pasts",
-                                    // kuros nepareizi izmantota domuzīme
-                                    String msg = getDescription();
-                                    List<AnalyzedTokenReadings> apple = Arrays.stream(tokens, sublistStart, sublistEnd).collect(Collectors.toList());
-                                    String correction = apple.get(0).getToken()+defise+apple.get(apple.size()-1).getToken();
-                                    RuleMatch match = new RuleMatch(this, sentence, tokens[sublistStart].getStartPos(), tokens[sublistEnd-1].getEndPos(), msg);
-                                    System.out.println(correction);
-                                    match.setSuggestedReplacement(correction.toString());
-                                    ruleMatches.add(match);
-                                } else if (true) {
-
-                                }
-                            } else {
-
-                            }
-                        }
-
-
-//                        if (!checkGazetteer(a, PLACENAME_FILENAME)) {
-//                            // Ja netiek atrasts maršruts
-//                            System.out.println("Amogus "+a.toString());
-//                        }
-                    }
-
-                    // Citādi mēs varam aplūkot iepriekšējo un nākamo tokenu.
-                    // Ja Pattern.compile("\\p{Lu}\\p{Ll}+[-–—]\\p{Lu}\\p{Ll}+");
-                    //      Ja maršruts, tad pārbaudām, ka nav atstarpju
-                    //      Ja vietvārds ar defisi, labojam uz defisi
-                    //      Citādi laikam dubultuzvārds un ir jālabo uz defisi
-                    // Citādi pārbaudām vai abās pusēs ir divi atpazīti vārdi
-                    //      Ja tie veido saistītu terminu, tad labojam uz defisi
-                    // Citādi pārbaudām pārējos defises lietojuma tipus
-                }
-            }
-            // TODO: Nepieciešams atsevišķi apstrādāt situācijas, kad defise ir daļa no cita tokena.
-            //  it kā kkas šāds ir apskatīts DashFormatRule bet tikai maršrutiem
-            //  Šis arī attiecas uz dubultuzvārdiem un visiem citiem labojumiem
-            // Pašreizējā metode vnk neatrod nekādus labojumus, ja defise ir daļa no vārda
-            else if (token.matches("e-")) {
-                System.out.println(tokens[i].getToken()+tokens[i+1].getToken()+tokens[i+2].getToken());
-                if (tokens.length > i+2 && tokens[i+1].getToken().matches("\\s") && tokens[i+2].getToken().matches("\\p{Ll}+")) {
-                    String msg = getDescription();
-                    String correction = token.substring(1);
-                    RuleMatch match = new RuleMatch(this, sentence, tokens[i].getStartPos()+1, tokens[i].getEndPos()+1, msg);
-                    System.out.println(sentence.getText().substring(tokens[i].getStartPos()+1, tokens[i].getEndPos()+1));
-                    System.out.println(correction);
-                    match.setSuggestedReplacement(correction);
-                    ruleMatches.add(match);
-                }
-            }
-        }
-
-        // TODO: Visos gadījumos, kuros nav kļūdaini lietota pārgarā domuzīme, nepieciešams to pārlabot uz parasto domuzīmi
-        //  it kā vajadzētu būt, ka visos iepriekše'jos gadījumos kur ir kaut kāds kļūdains lietojums, tiek aizstāts ar parasto domuzīmi
-        String text = sentence.getText();
-        int index = text.indexOf(longDomuzīme);
-        while (index != -1) {
-            // TBD: do something with index
-            System.out.println("Found '—' at position: " + index);
-            String msg = getDescription();
-            String correction = domuzīme.toString();
-            RuleMatch match = new RuleMatch(this, sentence, index, index+1, msg);
-            System.out.println(correction);
-            match.setSuggestedReplacement(correction.toString());
-            ruleMatches.add(match);
-
-            index = text.indexOf(domuzīme, index + 1);
-        }
-
-        return toRuleMatchArray(ruleMatches);
-    }
-
-
-
-    public RuleMatch[] match2(AnalyzedSentence sentence) throws IOException {
         List<RuleMatch> ruleMatches = new ArrayList<>();
         String text = sentence.getText();
         AnalyzedTokenReadings[] tokens = sentence.getTokens();
 
         // Vispirms apskatām specifiskākos gadījumus
+        // TODO: Līdzīgs likums ir arī ConnectingWhitespace failā, pārliecināties par nepieciešamību
         ruleMatches = yearSpanRule(ruleMatches, sentence);
 
         // Apskatām situāciju, kur svītras simbols ir teikuma sākumā
         // Tas nav saistīts ar pārējiem apskatāmajiem gadījumiem, kas ir starp vārdiem
-        // TODO: Pārliecināties vai šis matcher strādā pareizi
-        Pattern pattern = Pattern.compile("^\\s*[-–—]", Pattern.MULTILINE);
+        // TODO: Pārliecināties vai šis matcher strādā pareizi, ja seko cipars drīzāk lietota kā mīnus zīme
+        Pattern pattern = Pattern.compile("(?U)^\\s*"+dashes+"(?!\\d)", Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(text);
         while (matcher.find()) {
-            System.out.println("Match: " + matcher.group());
             int start = matcher.start();
             int end = matcher.end();
 
-            String msg = RuleDescriptions.quoteDashMessage;
             String correction = domuzīme.toString();
-            RuleMatch match = new RuleMatch(this, sentence, start, end+1, msg);
-            match.setSuggestedReplacement(correction);
-            ruleMatches.add(match);
+            if (!correction.matches(matcher.group())) {
+                String msg = RuleDescriptions.quoteDashMessage;
+                RuleMatch match = new RuleMatch(this, sentence, start, end+1, msg);
+                match.setSuggestedReplacement(correction);
+                ruleMatches.add(match);
+            }
         }
 
 
         // Vispirms apskatām situāciju ar 2 vārdiem ar Lielajiem sākuma burtiem
         // e.g. Ribetropa–Molotova, Vaira Vīķe-Freiberga, Kohtla-Jerve
-        pattern = Pattern.compile("\\p{Lu}\\p{Ll}+\\s*([-–—])\\s*\\p{Lu}\\p{Ll}+(\\s*[-–—]\\s*\\p{Lu}\\p{Ll}+)*");
+        pattern = Pattern.compile("(?U)(\\p{Lu}\\p{Ll}+)((?:\\s*"+dashes+"\\s*\\p{Lu}\\p{Ll}+)+)");
         matcher = pattern.matcher(text);
 
         int tokenIndex = 0;
@@ -326,9 +122,14 @@ public class DefiseFormatRule extends Rule {
             // FIXME: Vai gadījumā šeit es nevaru vnk izmantot RegEx grupas pa taisno nevis šitādu filtrēšanu???
             // This line filters out all non-text tokens from the regex match, i.e. whitespaces, dashes, hyphens
             List<AnalyzedTokenReadings> filteredTokens = matchingTokens.stream()
-                    .filter(element -> !element.getToken().matches("[\\s-–—]*"))
+                    .filter(element -> !element.getToken().matches("(?U)(\\s|"+dashes+")*"))
                     .toList();
-            List<String> filteredText = filteredTokens.stream().map(AnalyzedTokenReadings::getToken).toList();
+            List<String> filteredText = filteredTokens.stream()
+                    .map(AnalyzedTokenReadings::getToken)
+                    .flatMap(token -> Arrays.stream(token.split(defise.toString())))
+                    .map(String::trim)
+                    .filter(token -> !token.isEmpty())
+                    .toList();
             List<AnalyzedTokenReadings> taggedFilteredTokens = this.tagger.tag(filteredText);
 
             // TODO: Pārliecionāties ka šīs funkcijas strādā gan priekš tokenizēta, gan netokinizēta ievada
@@ -339,7 +140,7 @@ public class DefiseFormatRule extends Rule {
             int start = matcher.start();
             int end = matcher.end();
 
-            String hyphenConcat = concat(taggedFilteredTokens, '-').toString();
+            String hyphenConcat = concat(taggedFilteredTokens, defise).toString();
             if (checkGazetteer(hyphenConcat, PLACENAME_FILENAME)) {
                 if (!hyphenConcat.equals(matcher.group())) {
                     // e.g. Kohtla–Jerve, Kohtla- Jerve
@@ -353,76 +154,149 @@ public class DefiseFormatRule extends Rule {
             else {
                 // Maršrutus atdala ar domuzīmi, e.g. Rīgas–Viļņas, Rīga–Roja–Kolka
                 String potentialRoute = returnRoute(taggedFilteredTokens);
-                if (!potentialRoute.equals(matcher.group())) {
-                    String msg = RuleDescriptions.dashFormatMessage;
-                    String correction = potentialRoute;
-                    RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
-                    match.setSuggestedReplacement(correction);
-                    ruleMatches.add(match);
-                }
-                else if (checkInList(matchingTokens, INVENTORS_FILENAME)) {
-                    // Divu dažādu izgudrotāju uzvārdus atdala ar domuzīmi, e.g. Bozes–Einšteina
-                    String correction = concat(taggedFilteredTokens).toString();
-                    if (!correction.equals(matcher.group())) {
+                if (!potentialRoute.isEmpty()) {
+                    if (!potentialRoute.equals(matcher.group())) {
                         String msg = RuleDescriptions.dashFormatMessage;
+                        String correction = potentialRoute;
                         RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
                         match.setSuggestedReplacement(correction);
                         ruleMatches.add(match);
                     }
                 }
                 else {
-                    // Ja nav neviens no specgadījumiem, tad ir dažas alternatīvas
-                    // Dubultuzvārdi, vai parasta domuzīme
-                    // e.g. Vīķe-Freiberga, Jānis – Pēterim
-
-                    if (matcher.group().matches("\\p{Lu}\\p{Ll}+\\s+([-–—])\\s+\\p{Lu}\\p{Ll}+")) {
-                        // If whitespaces from both sides, assume dash
-                        String correction = matcher.group().replace("-", "–");
+                     if (checkInList(taggedFilteredTokens, INVENTORS_FILENAME)) {
+                        // Divu dažādu izgudrotāju uzvārdus atdala ar domuzīmi, e.g. Bozes–Einšteina
+                        String correction = concat(taggedFilteredTokens).toString();
                         if (!correction.equals(matcher.group())) {
-                            String msg = RuleDescriptions.dashFormatMessage;
+                            String msg = RuleDescriptions.NBSPDashMessage;
                             RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
                             match.setSuggestedReplacement(correction);
                             ruleMatches.add(match);
                         }
                     }
                     else {
-                        // If no whitespaces, assume hyphen
-                        String correction = concat(taggedFilteredTokens, '-').toString();
-                        if (!correction.equals(matcher.group())) {
-                            // FIXME: Could possibly be a generic RuleDescriptions.hyphenMessage situation as well
-                            String msg = RuleDescriptions.doubleSurnameMessage;
-                            RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
-                            match.setSuggestedReplacement(correction);
-                            ruleMatches.add(match);
+                        // Ja nav neviens no specgadījumiem, tad ir dažas alternatīvas
+                        // Dubultuzvārdi, vai parasta domuzīme
+                        // e.g. Vīķe-Freiberga, Jānis – Pēterim
+
+                        if (matcher.group().matches("(?U)(\\p{Lu}\\p{Ll}+)(\\s+"+dashes+"\\s+(\\p{Lu}\\p{Ll}+))+")) {
+                            // If whitespaces from both sides, assume dash
+                            StringBuilder correction = new StringBuilder(matcher.group(1));
+                            List<String> others = List.of((matcher.group(2).split("(?U)\\s"+dashes+"\\s+")));
+                            others = others.stream().filter(token -> !token.isEmpty()).toList();
+                            for (String other: others) {
+                                correction.append(nonBreakingSpace.toString() + domuzīme.toString() + " "+ other);
+                            }
+                            if (!correction.toString().equals(matcher.group())) {
+                                String msg = RuleDescriptions.NBSPDashMessage;
+                                if (correction.toString().contains(defise.toString())) {msg += " "+RuleDescriptions.dashMessage;}
+                                if (correction.toString().contains(longDomuzīme.toString())) {msg += " "+RuleDescriptions.mDashMessage;}
+                                RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
+                                match.setSuggestedReplacement(correction.toString());
+                                ruleMatches.add(match);
+                            }
+                        }
+                        else {
+                            // If no whitespaces, assume hyphen
+                            String correction = concat(taggedFilteredTokens, defise).toString();
+                            if (!correction.equals(matcher.group())) {
+                                // FIXME: Could possibly be a generic RuleDescriptions.hyphenMessage situation as well
+                                String msg = RuleDescriptions.doubleSurnameMessage;
+                                RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
+                                match.setSuggestedReplacement(correction);
+                                ruleMatches.add(match);
+                            }
                         }
                     }
                 }
             }
         }
 
-
-
         // Citādi apskatām gadījumus, kad vismaz viens no vārdiem ir ar mazo burtu?
 
-
+        // Aplūkojam gadījumus, kad pirmais vārds ir potenciāli ar lielo burtu
         // Aplūkojam pārējos gadījumus, abi ir ar mazajiem
-        // FIXME:
-        pattern = Pattern.compile("\\b\\p{Ll}+\\s*[-–—]\\s*\\p{Ll}+\\b");
+        // FIXME: E-pasts vs C-vitamīns -> E-pasts, bet C vitamīns
+        pattern = Pattern.compile("(?U)\\b\\p{L}?\\p{Ll}+(\\s*"+dashes+"\\s*)\\p{Ll}+\\b");
         matcher = pattern.matcher(text);
 
+        tokenIndex = 0;
         while (matcher.find()) {
             int matchStart = matcher.start();
             int matchEnd = matcher.end();
             List<AnalyzedTokenReadings> matchingTokens = new ArrayList<>();
 
-            if (checkInList(matchingTokens, COMPOUND_FILENAME)) {
-                // FIXME: This never matches take this to the section where small letter words are looked at
-                String correction = concat(taggedFilteredTokens, '-').toString();
+            // Skip tokens before current match
+            // Process tokens inside match
+            while (tokenIndex < tokens.length && tokens[tokenIndex].getEndPos() <= matchStart) tokenIndex++;
+            int i = tokenIndex;
+            while (i < tokens.length && tokens[i].getStartPos() < matchEnd) {
+                AnalyzedTokenReadings t = tokens[i];
+                if (t.getStartPos() >= matchStart && t.getEndPos() <= matchEnd) {
+                    matchingTokens.add(tokens[i]);
+                } else if (t.getEndPos() > matchEnd) {
+                    break;
+                }
+                i++;
+            }
+
+            // FIXME: Vai gadījumā šeit es nevaru vnk izmantot RegEx grupas pa taisno nevis šitādu filtrēšanu???
+            // This line filters out all non-text tokens from the regex match, i.e. whitespaces, dashes, hyphens
+            List<AnalyzedTokenReadings> filteredTokens = matchingTokens.stream()
+                    .filter(element -> !element.getToken().matches("(\\s|"+dashes+")*"))
+                    .toList();
+            List<String> filteredText = filteredTokens.stream()
+                    .map(AnalyzedTokenReadings::getToken)
+                    .flatMap(token -> Arrays.stream(token.split(defise.toString())))
+                    .filter(token -> !token.isEmpty())
+                    .toList();
+            List<AnalyzedTokenReadings> taggedFilteredTokens = this.tagger.tag(filteredText);
+
+            if (checkInList(taggedFilteredTokens, COMPOUND_FILENAME)) {
+                String correction = concat(taggedFilteredTokens, defise).toString();
                 if (!correction.equals(matcher.group())) {
                     String msg = RuleDescriptions.hyphenMessage;
-                    RuleMatch match = new RuleMatch(this, sentence, start, end, msg);
+                    RuleMatch match = new RuleMatch(this, sentence, matchStart, matchEnd, msg);
                     match.setSuggestedReplacement(correction);
                     ruleMatches.add(match);
+                }
+            }
+            else {
+                // FIXME: I feel like this should be reworked, but this is fine for now
+                boolean genetive_construct = true;
+                boolean month_construct = true;
+                boolean weekday_construct = true;
+                for (AnalyzedTokenReadings readings: taggedFilteredTokens) {
+                    boolean gen_dsk = false;
+                    boolean month_form = false;
+                    boolean weekday_form = false;
+                    for (AnalyzedToken reading: readings.getReadings()) {
+                        if (!reading.hasNoTag()) {
+                            if (reading.getPOSTag().matches("n.*[pd]g.")) gen_dsk = true;
+                            if (reading.getLemma().matches("(janvā|februā|((septe|nove|dece)m|okto)b)(ris)|marts|aprīlis|maijs|jū[nl]ijs|augusts")) month_form = true;
+                            if (reading.getLemma().matches("(pirm|otr|treš|ceturt|piekt|sest|svēt)diena")) weekday_form = true;
+                        }
+                    }
+                    if (!gen_dsk) genetive_construct = false;
+                    if (!month_form) month_construct = false;
+                    if (!weekday_form) weekday_construct = false;
+                }
+                if (!taggedFilteredTokens.isEmpty() && (genetive_construct || month_construct || weekday_construct)) {
+                    String correction = concat(taggedFilteredTokens).toString();
+                    if (!correction.equals(matcher.group())) {
+                        String msg = RuleDescriptions.dashFormatMessage;
+                        RuleMatch match = new RuleMatch(this, sentence, matchStart, matchEnd, msg);
+                        match.setSuggestedReplacement(correction);
+                        ruleMatches.add(match);
+                    }
+                } else if (matcher.group(1).matches("(?U)\\s?[‒–—]\\s?")) {
+                    String correction = nonBreakingSpace.toString()+domuzīme.toString()+" ";
+                    if (!matcher.group(1).equals(correction)) {
+                        String msg = RuleDescriptions.NBSPDashMessage;
+                        RuleMatch match = new RuleMatch(this, sentence, matcher.start(1), matcher.end(1), msg);
+                        match.setSuggestedReplacement(correction);
+                        ruleMatches.add(match);
+                    }
                 }
             }
         }
@@ -432,36 +306,47 @@ public class DefiseFormatRule extends Rule {
         // Aizvietojam visas pārgarās domuzīmes ar parastajām domuzīmēm
         int index = text.indexOf(longDomuzīme);
         while (index != -1) {
-            String msg = getDescription();
+            String msg = RuleDescriptions.mDashMessage;
             String correction = domuzīme.toString();
             RuleMatch match = new RuleMatch(this, sentence, index, index+1, msg);
             match.setSuggestedReplacement(correction.toString());
             ruleMatches.add(match);
 
-            index = text.indexOf(domuzīme, index + 1);
+            index = text.indexOf(longDomuzīme, index + 1);
         }
+
+
+        // TODO: Šeit pielietot parastos noteikumus
+        pattern = Pattern.compile("(?U)\\s+"+dashes+"\\s+");
+        matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            String correction = nonBreakingSpace.toString()+domuzīme.toString()+" ";
+            int matchStart = matcher.start();
+            int matchEnd = matcher.end();
+
+            if (!correction.equals(matcher.group())) {
+                String msg = RuleDescriptions.dashMessage;
+                RuleMatch match = new RuleMatch(this, sentence, matchStart, matchEnd, msg);
+                match.setSuggestedReplacement(correction);
+                ruleMatches.add(match);
+            }
+        }
+
 
         return toRuleMatchArray(ruleMatches);
     }
 
 
-
-
-
-
-
     // TODO: Varbūt būtu labāk pārlikt maršruta pārbaudīšanu atsevišķā funkcijā
     public String returnRoute(List<AnalyzedTokenReadings> route_parts) throws IOException {
         Set<String> places = loadGazetteer(PLACENAME_FILENAME);
-        Character domuzīme = '–';
-
         boolean isRoute = true;
 
         // Ar StringBuilder izveidojam kopējo "maršrutu" vienā String elementā
         StringBuilder concatenatedText = new StringBuilder();
         for (int i = 0; i < route_parts.size(); i++) {
             concatenatedText.append(route_parts.get(i).getToken());
-            if (i+1 != route_parts.size()) concatenatedText.append("–");
+            if (i+1 != route_parts.size()) concatenatedText.append(domuzīme);
         }
 
         List<String> tot = Collections.singletonList(concatenatedText.toString());
@@ -484,10 +369,12 @@ public class DefiseFormatRule extends Rule {
 
         StringBuilder correction = new StringBuilder();
         for (int j = 0; j < route_parts.size(); j++) {
-            boolean existsMatch = false;
+            boolean existsMatch = true;
             for (AnalyzedToken reading: route_parts.get(j).getReadings()) {
-                if (places.contains(reading.getLemma())) {
-                    existsMatch = true;
+                boolean partExistsMatch = false;
+                String a = route_parts.get(j).getToken();
+                if (places.contains(route_parts.get(j).getToken()) || places.contains(reading.getLemma())) {
+                    partExistsMatch = true;
                     correction.append(reading.getToken());
                     if (j+1 != route_parts.size()) correction.append(domuzīme);
                     break;
@@ -499,16 +386,16 @@ public class DefiseFormatRule extends Rule {
                     //  Vajadzētu tad laikam ieslēgt minēšanu tagerī, man šķiet pēc noklusējuma tas bija izslēgts
                     //  Plus jāpārliecinās, ka ieteiktais labojums arī saglabā pareizās defises
                     for (String place: places) {
-                        int div = place.indexOf('-');
-                        if (place.indexOf('-') != -1) {
+                        int div = place.indexOf(defise);
+                        if (place.indexOf(defise) != -1) {
                             if (place.substring(0,div).contains(reading.getToken()) && j+1 != route_parts.size() && route_parts.size() > 2) {
                                 for (AnalyzedToken reading2: route_parts.get(j+1).getReadings()) {
                                     String lemma = "";
                                     if (reading2.getLemma() != null) lemma = reading2.getLemma();
                                     else lemma = reading2.getToken();
                                     if (place.substring(div+1).contains(lemma)) {
-                                        existsMatch = true;
-                                        correction.append(reading.getToken()).append("-").append(lemma);
+                                        partExistsMatch = true;
+                                        correction.append(reading.getToken()).append(defise).append(lemma);
                                         if (j+2 < route_parts.size()) correction.append(domuzīme);
                                         j++;
                                         break;
@@ -518,8 +405,9 @@ public class DefiseFormatRule extends Rule {
                         }
                     }
                 }
+                if (!partExistsMatch) return "";
             }
-            if (!existsMatch) isRoute = false;
+            if (!existsMatch) return "";
         }
         return correction.toString();
     }
@@ -535,7 +423,7 @@ public class DefiseFormatRule extends Rule {
     // TODO: Varbūt būtu labāk pārlikt maršruta pārbaudīšanu atsevišķā funkcijā
     public Boolean checkGazetteer(List<AnalyzedTokenReadings> route_parts, String gazetteer) throws IOException {
         Set<String> places = loadGazetteer(gazetteer);
-        Pattern dash = Pattern.compile("[-–—]");
+        Pattern dash = Pattern.compile(dashes);
         boolean isRoute = true;
 
         // Ar StringBuilder izveidojam kopējo "maršrutu" vienā String elementā
@@ -625,7 +513,6 @@ public class DefiseFormatRule extends Rule {
         // Tokenizējam, lai noteiktu vai ir locījumā (vispirms izveidojam sarakstu ar 1 el, jo tagot var tikai sarakstu)
         List<String> tot = Collections.singletonList(concatenatedText.toString());
         List<AnalyzedTokenReadings> tagged_whole_word = this.tagger.tag(tot);
-        System.out.println(concatenatedText+"+");
 
         // Pārbaudām vai eksistē šis saliktenis kādā no sarakstiem
         // Primāri priekš fiksētiem izteicieniem, kas vienmēr ir vienā locījumā
@@ -646,18 +533,28 @@ public class DefiseFormatRule extends Rule {
 
         if (list.equals(COMPOUND_FILENAME)) {
             // Ja saliktenis, tad var būt arī locījumā
-//            for (String a: places) {
-//                if (a.contains(String.valueOf(defise))) {
-//                    String[] terms = a.split(defise.toString());
-//                    Boolean good = true;
-//                    for (int i = 0; i < terms.length; i++) {
-//                        if (tagged_whole_word.get(i).getReadings().size() > 0) {
-//                            for (int j = 0; j < terms.length; j++)
-//                        }
-//                        if (tagged_whole_word.get(i).getReadings().get(0).equals(terms[0])) {}
-//                    }
-//                }
-//            }
+            for (String compound: places) {
+                // Compound parts are by default in lemma form
+                boolean whole_word_match = true;
+                List<String> compound_parts = Arrays.stream(compound.split(defise.toString())).toList();
+                for (int j = 0; j<compound_parts.size(); j++) {
+                    boolean part_match = false;
+                    AnalyzedTokenReadings part = parts.get(j);
+                    for (int k = 0; k<part.getReadingsLength(); k++) {
+                        String compound_part = compound_parts.get(j);
+                        String part_lemma = part.getAnalyzedToken(k).getLemma();
+                        if (compound_parts.get(j).toLowerCase().matches(part_lemma.toLowerCase())) {
+                            part_match = true;
+                            break;
+                        }
+                    }
+                    if (!part_match) {
+                        whole_word_match = false;
+                        break;
+                    }
+                }
+                if (whole_word_match) return true;
+            }
         }
 
         return false;
@@ -683,7 +580,7 @@ public class DefiseFormatRule extends Rule {
     }
 
     public static String replaceLongDomuzime(String correction) {
-        return correction.replace("—", "–");
+        return correction.replace(longDomuzīme, domuzīme);
     }
 
     public static void replaceLongDomuzime(StringBuilder sb) {
@@ -710,14 +607,14 @@ public class DefiseFormatRule extends Rule {
 
 
     public static StringBuilder concat(List<AnalyzedTokenReadings> parts) {
-        Pattern dash = Pattern.compile("[-–—]");
+        Pattern dash = Pattern.compile(dashes);
         // Ar StringBuilder izveidojam kopējo "maršrutu" vienā String elementā
         StringBuilder concatenatedText = new StringBuilder();
         for (int i = 0; i < parts.size(); i++) {
             // Sakonkatinējam tos tokenus, kas nav svītras ar domuzīmēm
             if (!parts.get(i).getToken().matches(dash.pattern())) {
                 concatenatedText.append(parts.get(i).getToken());
-                if (i+1 != parts.size()) concatenatedText.append("–");
+                if (i+1 != parts.size()) concatenatedText.append(domuzīme);
             }
         }
         replaceLongDomuzime(concatenatedText);
@@ -725,7 +622,7 @@ public class DefiseFormatRule extends Rule {
     }
 
     public static StringBuilder concat(List<AnalyzedTokenReadings> parts, Character joiner) {
-        Pattern dash = Pattern.compile("[-–—]");
+        Pattern dash = Pattern.compile(dashes);
         // Ar StringBuilder izveidojam kopējo "maršrutu" vienā String elementā
         StringBuilder concatenatedText = new StringBuilder();
         for (int i = 0; i < parts.size(); i++) {
@@ -744,7 +641,7 @@ public class DefiseFormatRule extends Rule {
     public List<RuleMatch> yearSpanRule(List<RuleMatch> ruleMatches, AnalyzedSentence sentence) {
         String message = getSpacingIssue1();
 
-        String years_format = "\\b(\\d{4})\\s?[-–—]\\s?(\\d{4})\\b";
+        String years_format = "\\b(\\d{4})\\s?"+dashes+"\\s?(\\d{4})\\b";
         Pattern yearsPattern = Pattern.compile(years_format);
         Matcher yearsMatcher = yearsPattern.matcher(sentence.getText());
 
@@ -755,7 +652,7 @@ public class DefiseFormatRule extends Rule {
 
             String year_1 = yearsMatcher.group(1);
             String year_2 = yearsMatcher.group(2);
-            corrected_text = year_1+defise+year_2;
+            corrected_text = year_1+domuzīme+year_2;
 
             System.out.println(corrected_text);
 
