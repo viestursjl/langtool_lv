@@ -126,7 +126,7 @@ public class LatvianTest extends LanguageSpecificTest {
   @Test
   public void defiseStarpAtstarpem() throws IOException {
     JLanguageTool lt = new JLanguageTool(new Latvian());
-    seperate_test(lt, "Man nepatīk e- klase");
+    seperate_test(lt, "fonologs – fonētiķim");
 //    seperate_test(lt, "Ko tu -, dari?");
 //    seperate_test(lt, "Te ir ar vairākām   - atstarpēm.");
 //    seperate_test(lt, "Nezinu- varbūt šis arī jāatdala?");

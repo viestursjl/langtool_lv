@@ -543,7 +543,7 @@ public class DefiseFormatRule extends Rule {
                     for (int k = 0; k<part.getReadingsLength(); k++) {
                         String compound_part = compound_parts.get(j);
                         String part_lemma = part.getAnalyzedToken(k).getLemma();
-                        if (compound_parts.get(j).toLowerCase().matches(part_lemma.toLowerCase())) {
+                        if (part_lemma != null && compound_parts.get(j).equalsIgnoreCase(part_lemma)) {
                             part_match = true;
                             break;
                         }
